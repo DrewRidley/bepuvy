@@ -1,0 +1,9 @@
+[package]
+name = "bepuvy"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+#bepuvy-sys = { git = "https://github.com/DrewRidley/bepuvy-sys.git" }
+bepuvy-sys = { path = "../bepuvy-sys" }
+bevy = "0.15"

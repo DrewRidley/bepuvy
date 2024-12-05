@@ -16,7 +16,9 @@ impl Plugin for BepuvyPlugin {
 
         let buffer_pool = unsafe { CreateBufferPool(131072, 16) };
 
-        let thread_dispatcher = unsafe { CreateThreadDispatcher(GetPlatformThreadCount(), 16384) };
+        let thread_dispatcher = unsafe { CreateThreadDispatcher(8, 16384) };
+
+        //GetPlatformThreadCount()
 
         // Use the same callbacks from the basic example
         let simulation = unsafe {
@@ -46,8 +48,10 @@ impl Plugin for BepuvyPlugin {
             buffer_pool,
             thread_dispatcher,
             simulation,
-        })
-        .add_systems(Update, physics_step);
+        });
+
+        app.insert_resource(Time::<Fixed>::from_hz(30.0)) // 33.3ms per physics step
+            .add_systems(FixedUpdate, physics_step);
     }
 }
 
@@ -171,12 +175,108 @@ pub struct PhysicsResources {
 // Components
 #[derive(Component)]
 pub struct RigidBody {
+    // The underlying Bepu handle to the physics body.
     pub handle: BodyHandle,
+}
+
+#[derive(Clone)]
+pub struct PhysicsShape {
+    handle: TypedIndex,
+}
+
+#[derive(Resource)]
+pub struct PhysicsShapes;
+
+impl PhysicsShape {
+    pub fn box_shape(width: f32, height: f32, length: f32) -> impl FnMut(&mut World) -> Self {
+        move |world| {
+            let physics = world.resource::<PhysicsResources>();
+            let handle = physics.create_box_shape(width, height, length);
+            Self { handle }
+        }
+    }
+
+    pub fn sphere_shape(radius: f32) -> impl FnMut(&mut World) -> Self {
+        move |world| {
+            let physics = world.resource::<PhysicsResources>();
+            let handle = physics.create_sphere_shape(radius);
+            Self { handle }
+        }
+    }
+}
+
+impl RigidBody {
+    pub fn new_box(
+        width: f32,
+        height: f32,
+        length: f32,
+        position: Vec3,
+        mass: f32,
+    ) -> impl FnMut(&mut World) -> Self {
+        move |world| {
+            let physics = world.resource::<PhysicsResources>();
+
+            // Create box shape
+            let shape = physics.create_box_shape(width, height, length);
+
+            // Create rigid body
+            let pose = RigidPose::new(
+                Vector3::new(position.x, position.y, position.z),
+                Quaternion::identity(),
+            );
+
+            let handle = physics.create_dynamic_body(pose, shape, mass);
+
+            Self { handle }
+        }
+    }
+
+    pub fn new_sphere(radius: f32, position: Vec3, mass: f32) -> impl FnMut(&mut World) -> Self {
+        move |world| {
+            let physics = world.resource::<PhysicsResources>();
+
+            let shape = physics.create_sphere_shape(radius);
+
+            let pose = RigidPose::new(
+                Vector3::new(position.x, position.y, position.z),
+                Quaternion::identity(),
+            );
+
+            let handle = physics.create_dynamic_body(pose, shape, mass);
+
+            Self { handle }
+        }
+    }
 }
 
 #[derive(Component)]
 pub struct StaticBody {
     pub handle: StaticHandle,
+}
+
+impl StaticBody {
+    // Constructor for a box static body
+    pub fn new_box(
+        width: f32,
+        height: f32,
+        length: f32,
+        position: Vec3,
+    ) -> impl FnMut(&mut World) -> Self {
+        move |world| {
+            let physics = world.resource::<PhysicsResources>();
+
+            let shape = physics.create_box_shape(width, height, length);
+
+            let pose = RigidPose::new(
+                Vector3::new(position.x, position.y, position.z),
+                Quaternion::identity(),
+            );
+
+            let handle = physics.create_static_body(pose, shape);
+
+            Self { handle }
+        }
+    }
 }
 
 // Main physics step system

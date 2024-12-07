@@ -2,7 +2,7 @@ use bepuvy_sys::bepu::{
     bodies::*, collisions::*, continuity::*, functions::*, handles::*, interop_math::*,
     pose_integration::*, shapes::*, utilities::*, *,
 };
-use bevy::prelude::*;
+use bevy::{ecs::schedule::ScheduleLabel, prelude::*};
 use constraints::SpringSettings;
 use statics::StaticDescription;
 
@@ -16,7 +16,7 @@ impl Plugin for BepuvyPlugin {
 
         let buffer_pool = unsafe { CreateBufferPool(131072, 16) };
 
-        let thread_dispatcher = unsafe { CreateThreadDispatcher(8, 16384) };
+        let thread_dispatcher = unsafe { CreateThreadDispatcher(6, 16384) };
 
         //GetPlatformThreadCount()
 
@@ -50,9 +50,40 @@ impl Plugin for BepuvyPlugin {
             simulation,
         });
 
+        app.init_state::<PhysicsState>();
+
+        app.configure_sets(
+            FixedUpdate,
+            (PhysicsSet.run_if(in_state(PhysicsState::Running))),
+        );
         app.insert_resource(Time::<Fixed>::from_hz(30.0)) // 33.3ms per physics step
-            .add_systems(FixedUpdate, physics_step);
+            .add_systems(FixedUpdate, physics_step.in_set(PhysicsSet));
+
+        app.add_systems(Update, toggle_physics);
     }
+}
+
+fn toggle_physics(
+    keyboard: Res<ButtonInput<KeyCode>>,
+    mut next_state: ResMut<NextState<PhysicsState>>,
+    state: Res<State<PhysicsState>>,
+) {
+    if keyboard.just_pressed(KeyCode::Space) {
+        match state.get() {
+            PhysicsState::Running => next_state.set(PhysicsState::Paused),
+            PhysicsState::Paused => next_state.set(PhysicsState::Running),
+        }
+    }
+}
+
+#[derive(SystemSet, Debug, Eq, PartialEq, Clone, Hash)]
+pub struct PhysicsSet;
+
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Default, States)]
+enum PhysicsState {
+    Running,
+    #[default]
+    Paused,
 }
 
 // Add these callback functions:

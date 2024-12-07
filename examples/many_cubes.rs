@@ -1,5 +1,6 @@
 use bepuvy::{BepuvyPlugin, PhysicsResources, RigidBody, StaticBody};
 use bepuvy_sys::bepu::interop_math::{Quaternion, RigidPose, Vector3};
+use bevy::color::palettes::css::SPRING_GREEN;
 use bevy::core::TaskPoolThreadAssignmentPolicy;
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy::tasks::available_parallelism;
@@ -16,9 +17,10 @@ fn main() {
         .add_plugins(DefaultPlugins.set(TaskPoolPlugin {
             task_pool_options: TaskPoolOptions {
                 compute: TaskPoolThreadAssignmentPolicy {
-                    percent: 0.5, // this value is irrelevant in this case
+                    percent: 1.0, // this value is irrelevant in this case
                     min_threads: 1,
-                    max_threads: available_parallelism(),
+                    //max_threads: available_parallelism(),
+                    max_threads: 4,
                 },
                 // keep the defaults for everything else
                 ..default()
@@ -46,7 +48,7 @@ fn setup(
 
     commands.spawn((
         Mesh3d(meshes.add(Mesh::from(Cuboid::new(100.0, 0.01, 100.0)))),
-        MeshMaterial3d(materials.add(StandardMaterial::from_color(RED))),
+        MeshMaterial3d(materials.add(StandardMaterial::from_color(SPRING_GREEN))),
         StaticBody {
             handle: ground_handle,
         },
@@ -54,15 +56,15 @@ fn setup(
 
     // Create shared resources for cubes
     let cube_mesh = meshes.add(Mesh::from(Cuboid::new(1.0, 1.0, 1.0)));
-    let cube_material = materials.add(StandardMaterial::from_color(BLUE));
+    let cube_material = materials.add(StandardMaterial::from_color(RED));
     let cube_shape = physics.create_box_shape(1.0, 1.0, 1.0);
 
     let mut rng = rand::thread_rng();
 
     // Spawn cubes in a tower formation
-    let cube_count = 32_000;
-    let base_size = 20; // Width/depth of the tower base
-    let spacing = 4.0; // Space between cubes
+    let cube_count = 22_000;
+    let base_size = 26; // Width/depth of the tower base
+    let spacing = 2.0; // Space between cubes
 
     for i in 0..cube_count {
         // Calculate position in a tower formation
@@ -74,9 +76,11 @@ fn setup(
         // Calculate position with slight random offset for more interesting physics
         let x = ((col as f32) - base_size as f32 / 2.0) * spacing + rng.gen_range(-0.1..0.1);
         let z = ((row as f32) - base_size as f32 / 2.0) * spacing + rng.gen_range(-0.1..0.1);
-        let y = layer as f32 * spacing + 1.0 + rng.gen_range(-0.05..0.05);
-
+        let y = layer as f32 + 1.0 + rng.gen_range(-0.05..0.05);
+        // * spacing
         // Create cube physics body
+        //
+        let cube_shape = physics.create_box_shape(1.0, 1.0, 1.0);
         let cube_pose = RigidPose::new(Vector3::new(x, y, z), Quaternion::identity());
         let cube_handle = physics.create_dynamic_body(cube_pose, cube_shape.clone(), 1.0);
 

@@ -210,7 +210,7 @@ pub struct RigidBody {
     pub handle: BodyHandle,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct PhysicsShape {
     handle: TypedIndex,
 }

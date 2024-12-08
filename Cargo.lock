@@ -319,9 +319,10 @@ dependencies = [
 [[package]]
 name = "bepuvy-sys"
 version = "0.1.0"
+source = "git+https://github.com/DrewRidley/bepuvy-sys.git#bdb4f4dce7086c7f880953483df2d41c09d2ef89"
 dependencies = [
  "bindgen 0.65.1",
- "which 7.0.0",
+ "which",
 ]
 
 [[package]]
@@ -1277,7 +1278,7 @@ dependencies = [
  "rustc-hash",
  "shlex",
  "syn",
- "which 4.4.2",
+ "which",
 ]
 
 [[package]]
@@ -4326,18 +4327,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "which"
-version = "7.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c9cad3279ade7346b96e38731a641d7343dd6a53d55083dd54eadfa5a1b38c6b"
-dependencies = [
- "either",
- "home",
- "rustix",
- "winsafe",
-]
-
-[[package]]
 name = "winapi"
 version = "0.3.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4771,12 +4760,6 @@ checksum = "36c1fec1a2bb5866f07c25f68c26e565c4c200aebb96d7e55710c19d3e8ac49b"
 dependencies = [
  "memchr",
 ]
-
-[[package]]
-name = "winsafe"
-version = "0.0.19"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d135d17ab770252ad95e9a872d365cf3090e3be864a34ab46f48555993efc904"
 
 [[package]]
 name = "x11-dl"

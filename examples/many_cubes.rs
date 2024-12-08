@@ -20,7 +20,7 @@ fn main() {
                     percent: 1.0, // this value is irrelevant in this case
                     min_threads: 1,
                     //max_threads: available_parallelism(),
-                    max_threads: 4,
+                    max_threads: 2,
                 },
                 // keep the defaults for everything else
                 ..default()
@@ -62,7 +62,7 @@ fn setup(
     let mut rng = rand::thread_rng();
 
     // Spawn cubes in a tower formation
-    let cube_count = 22_000;
+    let cube_count = 24_000;
     let base_size = 26; // Width/depth of the tower base
     let spacing = 2.0; // Space between cubes
 
@@ -80,7 +80,6 @@ fn setup(
         // * spacing
         // Create cube physics body
         //
-        let cube_shape = physics.create_box_shape(1.0, 1.0, 1.0);
         let cube_pose = RigidPose::new(Vector3::new(x, y, z), Quaternion::identity());
         let cube_handle = physics.create_dynamic_body(cube_pose, cube_shape.clone(), 1.0);
 
